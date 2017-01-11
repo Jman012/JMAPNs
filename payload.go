@@ -2,6 +2,9 @@ package JMAPNs
 
 import (
 	"encoding/json"
+	"fmt"
+	"reflect"
+	"strconv"
 )
 
 const (
@@ -9,7 +12,7 @@ const (
 )
 
 type Payload struct {
-	Alert              Alert                  `json:"alert,omitempty"`
+	Alert              *Alert                 `json:"alert,omitempty"`
 	Badge              json.Number            `json:"badge,omitempty,Number"` // We need 0 value
 	Sound              string                 `json:"sound,omitempty"`
 	SilentNotification numberedBool           `json:"content-available,omitempty"`
@@ -19,53 +22,65 @@ type Payload struct {
 }
 
 func NewPayload() *Payload {
-	p = &Payload{AppSpecific: make(map[string]interface{})}
+	p := &Payload{
+		Alert:       &Alert{},
+		AppSpecific: make(map[string]interface{}),
+	}
 	return p
 }
 
 func (p *Payload) String() string {
-	bytes, err := json.Marshal(p)
-	if err != nil {
-		// Unrecoverable error, but should never happen
-		panic(1)
-	}
-	return string(bytes)
-}
-
-func (p *Payload) Badge(num int) *Payload {
-	p.Badge = json.Number(num)
-	return p
-}
-
-func (p *Payload) Sound(sound string) *Payload {
-	p.Sound = sound
-	return p
-}
-
-func (p *Payload) RemoteNotification() *Payload {
-	p.SilentNotification = true
-	return p
-}
-
-func (p *Payload) Category(cat string) *Payload {
-	p.Category = cat
-	return p
-}
-
-func (p *Payload) ThreadId(id string) *Payload {
-	p.ThreadId = id
-	return p
-}
-
-func (p *Payload) MarshalJSON() ([]byte, error) {
+	// Prepare the payload for correct packaging first
 	entirePayload := make(map[string]interface{})
+	emptyAlert := Alert{}
+	if reflect.DeepEqual(*p.Alert, emptyAlert) {
+		p.Alert = nil
+	}
 	entirePayload["aps"] = p
 
 	for key, val := range p.AppSpecific {
 		entirePayload[key] = val
 	}
 
-	return json.Marshal(entirePayload)
+	// Then convert it
+	bytes, err := json.Marshal(entirePayload)
+
+	if err != nil {
+		// Unrecoverable error, but should never happen
+		fmt.Printf("Unexpected error converting Payload to string: %v", err)
+		panic(1)
+	}
+	return string(bytes)
+}
+
+func (p *Payload) SetBadge(num int) *Payload {
+	p.Badge = json.Number(strconv.Itoa(num))
+	return p
+}
+
+func (p *Payload) SetSound(sound string) *Payload {
+	p.Sound = sound
+	return p
+}
+
+func (p *Payload) SetSilent() *Payload {
+	p.SilentNotification = true
+	return p
+}
+
+func (p *Payload) SetCategory(cat string) *Payload {
+	p.Category = cat
+	return p
+}
+
+func (p *Payload) SetThreadId(id string) *Payload {
+	p.ThreadId = id
+	return p
+}
+
+func (p *Payload) SetAppSpecific(key, val string) *Payload {
+	p.AppSpecific[key] = val
+	return p
 }
 
 type Alert struct {
@@ -79,42 +94,42 @@ type Alert struct {
 	LaunchImage  string   `json:"launch-image,omitempty"`
 }
 
-func (a *Alert) Title(title string) *Alert {
+func (a *Alert) SetTitle(title string) *Alert {
 	a.Title = title
 	return a
 }
 
-func (a *Alert) Body(body string) *Alert {
+func (a *Alert) SetBody(body string) *Alert {
 	a.Body = body
 	return a
 }
 
-func (a *Alert) TitleLocalizedKey(key string) *Alert {
+func (a *Alert) SetTitleLocalizedKey(key string) *Alert {
 	a.TitleLocKey = key
 	return a
 }
 
-func (a *Alert) TitleLocalizedArguments(args []string) *Alert {
+func (a *Alert) SetTitleLocalizedArguments(args []string) *Alert {
 	a.TitleLocArgs = args
 	return a
 }
 
-func (a *Alert) ActionLocalizedKey(key string) *Alert {
+func (a *Alert) SetActionLocalizedKey(key string) *Alert {
 	a.ActionLocKey = key
 	return a
 }
 
-func (a *Alert) LocalizedKey(key string) *Alert {
+func (a *Alert) SetLocalizedKey(key string) *Alert {
 	a.LocKey = key
 	return a
 }
 
-func (a *Alert) LocalizedArguments(args []string) *Alert {
+func (a *Alert) SetLocalizedArguments(args []string) *Alert {
 	a.LocArgs = args
 	return a
 }
 
-func (a *Alert) LaunchImage(image string) *Alert {
+func (a *Alert) SetLaunchImage(image string) *Alert {
 	a.LaunchImage = image
 	return a
 }

@@ -1,7 +1,6 @@
 package JMAPNs
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 )
@@ -71,6 +70,6 @@ func TestClientWorks(t *testing.T) {
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Printf("Resonse header: %#v\n", resp)
-	fmt.Printf("Response body: %v\n", string(body))
+	t.Logf("Resonse header: %#v\n", resp)
+	t.Logf("Response body: %v\n", string(body))
 }
