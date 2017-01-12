@@ -7,10 +7,6 @@ import (
 	"strconv"
 )
 
-const (
-	MaximumSize = 4 * 1024
-)
-
 type Payload struct {
 	Alert              *Alert                 `json:"alert,omitempty"`
 	Badge              json.Number            `json:"badge,omitempty,Number"` // We need 0 value
@@ -30,6 +26,10 @@ func NewPayload() *Payload {
 }
 
 func (p *Payload) String() string {
+	return string(p.Bytes())
+}
+
+func (p *Payload) Bytes() []byte {
 	// Prepare the payload for correct packaging first
 	entirePayload := make(map[string]interface{})
 	emptyAlert := Alert{}
@@ -50,7 +50,7 @@ func (p *Payload) String() string {
 		fmt.Printf("Unexpected error converting Payload to string: %v", err)
 		panic(1)
 	}
-	return string(bytes)
+	return bytes
 }
 
 func (p *Payload) SetBadge(num int) *Payload {

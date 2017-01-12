@@ -13,7 +13,10 @@ const (
 	DevelopmentEndPoint = "https://api.development.push.apple.com"
 )
 
+type APNsClient http.Client
+
 var apnsEndPoint string = ProductionEndPoint
+var currentClient *APNsClient
 
 func Production() {
 	// TODO: When set, reconnect
@@ -56,6 +59,10 @@ func LoadAPNsCertificate(certFilePath, keyFilePath string) error {
 
 	// Set our global with the new, re-usable transport
 	http2Transport = transport
+	err = newAPNsClient()
+	if err != nil {
+		return fmt.Error("unexpected error creating HTTP/2 client")
+	}
 	return nil
 }
 
@@ -63,13 +70,11 @@ func clearAPNsCertificate() {
 	http2Transport = nil
 }
 
-func NewAPNsClient() (*http.Client, error) {
+func newAPNsClient() error {
 
 	if http2Transport == nil {
 		return nil, fmt.Errorf("error: could not create APNs client, you did not load the certificate")
 	}
 
-	client := &http.Client{Transport: http2Transport}
-
-	return client, nil
+	currentClient = &APNsClient{Transport: http2Transport}
 }
