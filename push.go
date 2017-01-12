@@ -63,12 +63,14 @@ func push(not *Notification) error {
 		return fmt.Errorf("APNs certificate not loaded")
 	}
 
-	// Construct and send the notification and payload
-	url := fmt.Sprintf("%s/3/device/%s", apnsEndPoint, not.DeviceToken)
+	// Convert the payload into JSON, handling errors
 	payloadBytes := not.Payload.Bytes()
 	if len(payloadBytes) > MaximumPayloadSize {
 		return fmt.Errorf("payload too large, expected %v was %v", MaximumPayloadSize, len(payloadBytes))
 	}
+
+	// Make the request
+	url := fmt.Sprintf("%s/3/device/%s", apnsEndPoint, not.DeviceToken)
 	req, err := http.NewRequest("POST", url, bytes.NewReader(payloadBytes))
 	if err != nil {
 		return fmt.Errorf("unexpected error creating HTTP/2 request: %v", err)
@@ -91,7 +93,7 @@ func push(not *Notification) error {
 }
 
 func parseResponse(resp *http.Response, not *Notification) error {
-	if ResponseStatus(resp.StatusCode) != Success {
+	if ResponseStatus(resp.StatusCode) != RespSuccess {
 		apnsResp := Response{
 			DeviceToken: not.DeviceToken,
 			ID:          resp.Header.Get("apns-id"),
