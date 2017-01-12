@@ -117,7 +117,7 @@ func (n *Notification) applyHeaders(req *http.Request) {
 		req.Header.Set("apns-expiration", strconv.FormatInt(n.Expiration.Unix(), 10))
 	}
 
-	if n.Priority != 10 && n.Priority != 5 {
+	if n.Priority == 10 || n.Priority == 5 {
 		req.Header.Set("apns-priority", strconv.Itoa(n.Priority))
 	}
 
