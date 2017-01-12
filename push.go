@@ -1,7 +1,9 @@
 package JMAPNs
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -10,7 +12,7 @@ type Notification struct {
 	Payload     Payload
 	DeviceToken string
 	ID          string
-	Expiration  time.Time
+	Expiration  *time.Time
 	Priority    int
 	Topic       string
 	CollapseID  string
@@ -55,23 +57,26 @@ func push(not *Notification) error {
 
 	// First, sanity checks
 	if not == nil {
-		return fmt.Error("nil Notification")
+		return fmt.Errorf("nil Notification")
 	}
-	if http2Transport == nil || apnsClient == nil {
-		return fmt.Error("APNs certificate not loaded")
+	if http2Transport == nil || currentClient == nil {
+		return fmt.Errorf("APNs certificate not loaded")
 	}
 
 	// Construct and send the notification and payload
 	url := fmt.Sprintf("%s/3/device/%s", apnsEndPoint, not.DeviceToken)
-	notBytes := not.Bytes()
-	if len(notBytes) > MaximumPayloadSize {
-		return fmt.Errorf("payload too large, expected %v was %v", MaximumPayloadSize, len(notBytes))
+	payloadBytes := not.Payload.Bytes()
+	if len(payloadBytes) > MaximumPayloadSize {
+		return fmt.Errorf("payload too large, expected %v was %v", MaximumPayloadSize, len(payloadBytes))
 	}
-	req := http.NewRequest("POST", url, bytes.NewReader(notBytes))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("unexpected error creating HTTP/2 request: %v", err)
+	}
 	not.applyHeaders(req)
 
 	// Perform the request
-	resp, err := client.Do(req)
+	resp, err := currentClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("error sending HTTP/2 request: %v", err)
 	}
@@ -85,34 +90,40 @@ func push(not *Notification) error {
 	return nil
 }
 
-func parseResponse(resp *http.Response, not *Notification) Response {
+func parseResponse(resp *http.Response, not *Notification) error {
 	if ResponseStatus(resp.StatusCode) != Success {
-		apnsResp := &Response{
+		apnsResp := Response{
 			DeviceToken: not.DeviceToken,
 			ID:          resp.Header.Get("apns-id"),
 			Status:      ResponseStatus(resp.StatusCode),
 		}
+
+		ResponseChannel <- apnsResp
+		return nil
+
 	}
+
+	return nil
 }
 
 func (n *Notification) applyHeaders(req *http.Request) {
 	if n.ID != "" {
-		req.Set("apns-id", n.ID)
+		req.Header.Set("apns-id", n.ID)
 	}
 
 	if n.Expiration != nil {
-		req.Set("apns-expiration", strconv.Itoa(n.Expiration.Unix))
+		req.Header.Set("apns-expiration", strconv.FormatInt(n.Expiration.Unix(), 10))
 	}
 
 	if n.Priority != 10 && n.Priority != 5 {
-		req.Set("apns-priority", strconv.Itoa(n.Priority))
+		req.Header.Set("apns-priority", strconv.Itoa(n.Priority))
 	}
 
 	if n.Topic != "" {
-		req.Set("apns-topic", n.Topic)
+		req.Header.Set("apns-topic", n.Topic)
 	}
 
-	if n.CollapseId != "" {
-		req.Set("apns-collapse-id", n.CollapseId)
+	if n.CollapseID != "" {
+		req.Header.Set("apns-collapse-id", n.CollapseID)
 	}
 }

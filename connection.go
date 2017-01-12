@@ -15,6 +15,11 @@ const (
 
 type APNsClient http.Client
 
+func (a APNsClient) Do(req *http.Request) (*http.Response, error) {
+	c := http.Client(a)
+	return c.Do(req)
+}
+
 var apnsEndPoint string = ProductionEndPoint
 var currentClient *APNsClient
 
@@ -61,7 +66,7 @@ func LoadAPNsCertificate(certFilePath, keyFilePath string) error {
 	http2Transport = transport
 	err = newAPNsClient()
 	if err != nil {
-		return fmt.Error("unexpected error creating HTTP/2 client")
+		return fmt.Errorf("unexpected error creating HTTP/2 client")
 	}
 	return nil
 }
@@ -73,8 +78,9 @@ func clearAPNsCertificate() {
 func newAPNsClient() error {
 
 	if http2Transport == nil {
-		return nil, fmt.Errorf("error: could not create APNs client, you did not load the certificate")
+		return fmt.Errorf("error: could not create APNs client, you did not load the certificate")
 	}
 
 	currentClient = &APNsClient{Transport: http2Transport}
+	return nil
 }
