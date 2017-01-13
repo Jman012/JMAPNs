@@ -3,6 +3,8 @@ package JMAPNs
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -94,6 +96,7 @@ func push(not *Notification) error {
 
 func parseResponse(resp *http.Response, not *Notification) error {
 	defer resp.Body.Close()
+	io.Copy(ioutil.Discard, resp.Body)
 	if ResponseStatus(resp.StatusCode) != RespSuccess {
 		apnsResp := Response{
 			DeviceToken: not.DeviceToken,
