@@ -12,7 +12,6 @@ var keyFile = flag.String("key", "", "Path to APNs Key Certificate")
 var token = flag.String("t", "", "Sample device token")
 
 func main() {
-	fmt.Println("vim-go")
 	flag.Parse()
 
 	if *certFile == "" || *keyFile == "" || *token == "" {

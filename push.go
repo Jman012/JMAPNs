@@ -93,6 +93,7 @@ func push(not *Notification) error {
 }
 
 func parseResponse(resp *http.Response, not *Notification) error {
+	defer resp.Body.Close()
 	if ResponseStatus(resp.StatusCode) != RespSuccess {
 		apnsResp := Response{
 			DeviceToken: not.DeviceToken,

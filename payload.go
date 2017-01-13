@@ -19,8 +19,7 @@ type Payload struct {
 
 func NewPayload() *Payload {
 	p := &Payload{
-		Alert:       &Alert{},
-		AppSpecific: make(map[string]interface{}),
+		Alert: &Alert{},
 	}
 	return p
 }
@@ -79,6 +78,9 @@ func (p *Payload) SetThreadId(id string) *Payload {
 }
 
 func (p *Payload) SetAppSpecific(key, val string) *Payload {
+	if p.AppSpecific == nil {
+		p.AppSpecific = make(map[string]interface{})
+	}
 	p.AppSpecific[key] = val
 	return p
 }
