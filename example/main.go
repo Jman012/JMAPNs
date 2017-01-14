@@ -40,6 +40,12 @@ func main() {
 		}
 	}()
 
+	go func() {
+		for resp := range JMAPNs.SuccessChannel {
+			fmt.Printf("Successful push: %#v\n", resp)
+		}
+	}()
+
 	JMAPNs.SendChannel <- &notification
 
 	time.Sleep(5 * time.Second)

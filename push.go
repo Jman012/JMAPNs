@@ -123,7 +123,12 @@ func parseResponse(resp *http.Response, not *Notification) error {
 		ResponseBody: string(body),
 	}
 
-	ResponseChannel <- apnsResp
+	switch apnsResp.Status {
+	case RespSuccess:
+		SuccessChannel <- apnsResp
+	default:
+		ResponseChannel <- apnsResp
+	}
 	return nil
 }
 
