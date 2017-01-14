@@ -31,7 +31,7 @@ func main() {
 
 	notification := JMAPNs.Notification{
 		Payload:     *payload,
-		DeviceToken: *token,
+		DeviceToken: JMAPNs.Token(*token),
 	}
 
 	go func() {

@@ -10,9 +10,11 @@ import (
 	"time"
 )
 
+type Token string
+
 type Notification struct {
 	Payload     Payload
-	DeviceToken string
+	DeviceToken Token
 	ID          string
 	Expiration  *time.Time
 	Priority    int
@@ -34,7 +36,7 @@ type Notification struct {
 	for what device an error occurred.
 */
 type Response struct {
-	DeviceToken  string
+	DeviceToken  Token
 	ID           string
 	Status       ResponseStatus
 	ResponseBody string
