@@ -35,23 +35,6 @@ func TestGoodCert(t *testing.T) {
 	}
 }
 
-func TestClientFailure(t *testing.T) {
-	clearAPNsCertificate()
-	_, err := NewAPNsClient()
-	if err == nil {
-		t.Error("Didn't get error for failure to load certs first")
-	}
-}
-
-func TestNewClient(t *testing.T) {
-	clearAPNsCertificate()
-	LoadAPNsCertificate(certFile, keyFile)
-	_, err := NewAPNsClient()
-	if err != nil {
-		t.Errorf("Unexpected error making new client: %v", err)
-	}
-}
-
 func TestClientWorks(t *testing.T) {
 	Development()
 	clearAPNsCertificate()
@@ -59,12 +42,8 @@ func TestClientWorks(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected setup error loading cert: %v", err)
 	}
-	client, err := NewAPNsClient()
-	if err != nil {
-		t.Errorf("Unexpected setup error making client: %v", err)
-	}
 
-	resp, err := client.Get(apnsEndPoint + "/3/device/invaliddevice")
+	resp, err := currentClient.Get(apnsEndPoint + "/3/device/invaliddevice")
 	if err != nil {
 		t.Errorf("Unexpected error communicating with APNs: %v", err)
 	}

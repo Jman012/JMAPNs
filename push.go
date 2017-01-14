@@ -34,14 +34,18 @@ type Notification struct {
 	for what device an error occurred.
 */
 type Response struct {
-	DeviceToken string
-	ID          string
-	Status      ResponseStatus
-	LocalError  error
+	DeviceToken  string
+	ID           string
+	Status       ResponseStatus
+	ResponseBody string
+	LocalError   error
 }
 
 var SendChannel = make(chan *Notification)
 var ResponseChannel = make(chan Response)
+var SuccessChannel = make(chan Response)
+
+var successResponse = false
 
 func init() {
 	go sender()
@@ -94,21 +98,32 @@ func push(not *Notification) error {
 	return nil
 }
 
+func EnableSuccessResponses() {
+	successResponse = true
+}
+
+func DisableSuccessResponses() {
+	successResponse = false
+}
+
 func parseResponse(resp *http.Response, not *Notification) error {
 	defer resp.Body.Close()
-	io.Copy(ioutil.Discard, resp.Body)
-	if ResponseStatus(resp.StatusCode) != RespSuccess {
-		apnsResp := Response{
-			DeviceToken: not.DeviceToken,
-			ID:          resp.Header.Get("apns-id"),
-			Status:      ResponseStatus(resp.StatusCode),
-		}
 
-		ResponseChannel <- apnsResp
+	if successResponse == false && ResponseStatus(resp.StatusCode) == RespSuccess {
+		io.Copy(ioutil.Discard, resp.Body)
 		return nil
-
 	}
 
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	apnsResp := Response{
+		DeviceToken:  not.DeviceToken,
+		ID:           resp.Header.Get("apns-id"),
+		Status:       ResponseStatus(resp.StatusCode),
+		ResponseBody: string(body),
+	}
+
+	ResponseChannel <- apnsResp
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/http2"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -18,6 +19,11 @@ type APNsClient http.Client
 func (a APNsClient) Do(req *http.Request) (*http.Response, error) {
 	c := http.Client(a)
 	return c.Do(req)
+}
+
+func (a APNsClient) Get(url string) (*http.Response, error) {
+	c := http.Client(a)
+	return c.Get(url)
 }
 
 var apnsEndPoint string = ProductionEndPoint
@@ -56,7 +62,14 @@ func LoadAPNsCertificate(certFilePath, keyFilePath string) error {
 	}
 	tlsConfig.BuildNameToCertificate()
 
-	transport := &http.Transport{TLSClientConfig: tlsConfig}
+	// We don't want to overload APNs, so the maximum number of HTTP2 connections
+	// will be 8, and they close after 30 seconds.
+	// Usually regular mode will only use 1, and batch mode should use all possible.
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		MaxIdleConns:    maximumNumberConns,
+		IdleConnTimeout: 30 * time.Second,
+	}
 	err = http2.ConfigureTransport(transport)
 	if err != nil {
 		return fmt.Errorf("error configuring HTTP/2 client, are you using Go >1.6?: %v", err)

@@ -16,5 +16,4 @@ var notification = Notification{
 func TestNoCert(t *testing.T) {
 	clearAPNsCertificate()
 
-	SendChannel <- notification
 }

@@ -20,6 +20,7 @@ func main() {
 	}
 
 	JMAPNs.Development()
+	JMAPNs.EnableSuccessResponses()
 	err := JMAPNs.LoadAPNsCertificate(*certFile, *keyFile)
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
@@ -35,11 +36,7 @@ func main() {
 
 	go func() {
 		for resp := range JMAPNs.ResponseChannel {
-			if resp.LocalError != nil {
-				fmt.Printf("Received local error: %v\n", resp.LocalError)
-			} else {
-				fmt.Printf("Received APNs error: %v\n", resp.Status)
-			}
+			fmt.Printf("Received response: %#v\n", resp)
 		}
 	}()
 

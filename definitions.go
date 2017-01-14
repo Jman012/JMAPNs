@@ -14,4 +14,18 @@ const (
 	RespUnavailable         ResponseStatus = 503
 )
 
+var ResponseStatusText = map[ResponseStatus]string{
+	RespSuccess:             "Success",
+	RespBadRequest:          "Bad request",
+	RespCertificateError:    "There was an error with the certificate or with the provider authentication token",
+	RespBadMethod:           "The request used a bad :method value. Only POST requests are supported.",
+	RespTokenNotActive:      "The device token is no longer active for the topic.",
+	RespLargePayload:        "The notification payload was too large.",
+	RespHighTokenLoad:       "The server received too many requests for the same device token.",
+	RespInternalServerError: "Internal server error",
+	RespUnavailable:         "The server is shutting down and unavailable.",
+}
+
 const MaximumPayloadSize = 4 * 1024
+
+const maximumNumberConns = 8
