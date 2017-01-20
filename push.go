@@ -43,9 +43,9 @@ type Response struct {
 	LocalError   error
 }
 
-var SendChannel = make(chan *Notification)
-var ResponseChannel = make(chan Response)
-var SuccessChannel = make(chan Response)
+var SendChannel = make(chan *Notification, 8)
+var ResponseChannel = make(chan Response, 8)
+var SuccessChannel = make(chan Response, 8)
 
 var successResponse = false
 
@@ -87,6 +87,8 @@ func push(not *Notification) error {
 
 	// Perform the request
 	resp, err := currentClient.Do(req)
+	defer resp.Body.Close()
+
 	if err != nil {
 		return fmt.Errorf("error sending HTTP/2 request: %v", err)
 	}
@@ -109,7 +111,6 @@ func DisableSuccessResponses() {
 }
 
 func parseResponse(resp *http.Response, not *Notification) error {
-	defer resp.Body.Close()
 
 	if successResponse == false && ResponseStatus(resp.StatusCode) == RespSuccess {
 		io.Copy(ioutil.Discard, resp.Body)
