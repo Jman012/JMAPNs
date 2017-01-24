@@ -1,4 +1,4 @@
-package JMAPNs
+package jmapns
 
 import (
 	"encoding/json"

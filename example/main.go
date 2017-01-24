@@ -1,9 +1,9 @@
 package main
 
 import (
-	"JMAPNs"
 	"flag"
 	"fmt"
+	"jmapns"
 	"time"
 )
 
@@ -19,34 +19,34 @@ func main() {
 		return
 	}
 
-	JMAPNs.Development()
-	JMAPNs.EnableSuccessResponses()
-	err := JMAPNs.LoadAPNsCertificate(*certFile, *keyFile)
+	jmapns.Development()
+	jmapns.EnableSuccessResponses()
+	err := jmapns.LoadAPNsCertificate(*certFile, *keyFile)
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
 
-	payload := JMAPNs.NewPayload()
+	payload := jmapns.NewPayload()
 	payload.Alert.SetBody("This is a test notification").SetTitle("The title")
 
-	notification := JMAPNs.Notification{
+	notification := jmapns.Notification{
 		Payload:     *payload,
-		DeviceToken: JMAPNs.Token(*token),
+		DeviceToken: jmapns.Token(*token),
 	}
 
 	go func() {
-		for resp := range JMAPNs.ResponseChannel {
+		for resp := range jmapns.ResponseChannel {
 			fmt.Printf("Received response: %#v\n", resp)
 		}
 	}()
 
 	go func() {
-		for resp := range JMAPNs.SuccessChannel {
+		for resp := range jmapns.SuccessChannel {
 			fmt.Printf("Successful push: %#v\n", resp)
 		}
 	}()
 
-	JMAPNs.SendChannel <- &notification
+	jmapns.SendChannel <- &notification
 
 	time.Sleep(5 * time.Second)
 }

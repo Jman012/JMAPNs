@@ -1,4 +1,4 @@
-package JMAPNs
+package jmapns
 
 /*
 	Use this function when broadcasting the same payload to
